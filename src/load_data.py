@@ -1,8 +1,12 @@
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
+import os
 
-def get_candles(symbol, start_date, end_date, interval=10):
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+
+
+def get_moex_candles(symbol, start_date, end_date, interval=10):
     url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{symbol}/candles.json"
     cur_date = start_date
 
@@ -39,3 +43,7 @@ def get_candles(symbol, start_date, end_date, interval=10):
     df.drop(columns=['begin'], inplace=True)
 
     return df
+
+def save_candles_df(df, file_name):
+    path = os.path.join(DATA_DIR, file_name)
+    df.to_csv(path, index=False)
