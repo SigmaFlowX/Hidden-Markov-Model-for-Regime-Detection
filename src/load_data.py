@@ -65,8 +65,8 @@ def main():
     start_date = datetime(2000, 12, 1)
     end_date = datetime(2026, 3, 11)
     ticker = "IMOEX"
-    candles = get_moex_candles(ticker, start_date, end_date, interval=10, market="index")
 
+    candles = get_moex_candles(ticker, start_date, end_date, interval=10, market="index")
     save_candles_df(candles, f"{ticker}.csv")
 
     candles = pd.read_csv(os.path.join(DATA_DIR, f"{ticker}.csv"))
