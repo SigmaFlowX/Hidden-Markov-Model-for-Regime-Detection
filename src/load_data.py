@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import os
+import time
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -24,7 +25,17 @@ def get_moex_candles(symbol, start_date, end_date, interval=10):
             "till": cur_date + timedelta(days=delta),
             "interval": interval
         }
-        response = session.get(url, params=params)
+        while True:
+            try:
+                response = session.get(url, params=params)
+                if response.status_code != 200:
+                    print(f"Invalid response {response}")
+                    time.sleep(5)
+                    continue
+            except Exception as e:
+                print(f"Exception: {e}")
+                time.sleep(5)
+
         data = response.json()
 
         temp_df = pd.DataFrame(data["candles"]["data"], columns=data["candles"]["columns"])
