@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
-def get_moex_candles(symbol, start_date, end_date, interval=10):
-    url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{symbol}/candles.json"
+def get_moex_candles(symbol, start_date, end_date, interval=10, market="shares"):
+    url = f"https://iss.moex.com/iss/engines/stock/markets/{market}/boards/TQBR/securities/{symbol}/candles.json"
     cur_date = start_date
 
     if interval == 10:
@@ -62,13 +62,13 @@ def save_candles_df(df, file_name):
     df.to_csv(path, index=False)
 
 def main():
-    start_date = datetime(2015, 1, 1)
+    start_date = datetime(2025, 12, 1)
     end_date = datetime(2025, 12, 31)
-    candles = get_moex_candles("SBERP", start_date, end_date, interval=10)
+    candles = get_moex_candles("IMOEX", start_date, end_date, interval=10, market="index")
 
-    save_candles_df(candles, "SBERP.csv")
+    #save_candles_df(candles, "IMOEX2.csv")
 
-    candles = pd.read_csv(os.path.join(DATA_DIR, "SBERP.csv"))
+    #candles = pd.read_csv(os.path.join(DATA_DIR, "IMOEX2.csv"))
     candles['end'] = pd.to_datetime(candles['end'])
     candles.set_index('end', inplace=True)
     candles = candles.resample('1h').agg({
