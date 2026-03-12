@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 import time
+from matplotlib import pyplot as plt
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -60,13 +61,29 @@ def save_candles_df(df, file_name):
     path = os.path.join(DATA_DIR, file_name)
     df.to_csv(path, index=False)
 
-
 def main():
     start_date = datetime(2015, 1, 1)
     end_date = datetime(2025, 12, 31)
     candles = get_moex_candles("SBERP", start_date, end_date, interval=10)
 
     save_candles_df(candles, "SBERP.csv")
+
+    candles = pd.read_csv(os.path.join(DATA_DIR, "SBERP.csv"))
+    candles['end'] = pd.to_datetime(candles['end'])
+    candles.set_index('end', inplace=True)
+    candles = candles.resample('1h').agg({
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'volume': 'sum'
+    })
+
+    closes = candles['close'].values
+    times = candles.index
+
+    plt.plot(times, closes)
+    plt.show()
 
 if __name__ == "__main__":
     main()
