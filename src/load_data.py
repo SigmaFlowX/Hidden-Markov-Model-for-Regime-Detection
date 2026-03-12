@@ -62,8 +62,8 @@ def save_candles_df(df, file_name):
     df.to_csv(path, index=False)
 
 def main():
-    start_date = datetime(2025, 12, 1)
-    end_date = datetime(2025, 12, 31)
+    start_date = datetime(2000, 12, 1)
+    end_date = datetime(2026, 3, 11)
     ticker = "IMOEX"
     candles = get_moex_candles(ticker, start_date, end_date, interval=10, market="index")
 
