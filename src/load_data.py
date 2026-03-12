@@ -32,6 +32,7 @@ def get_moex_candles(symbol, start_date, end_date, interval=10):
                     print(f"Invalid response {response}")
                     time.sleep(5)
                     continue
+                break
             except Exception as e:
                 print(f"Exception: {e}")
                 time.sleep(5)
@@ -58,3 +59,14 @@ def get_moex_candles(symbol, start_date, end_date, interval=10):
 def save_candles_df(df, file_name):
     path = os.path.join(DATA_DIR, file_name)
     df.to_csv(path, index=False)
+
+
+def main():
+    start_date = datetime(2015, 1, 1)
+    end_date = datetime(2025, 12, 31)
+    candles = get_moex_candles("SBERP", start_date, end_date, interval=10)
+
+    save_candles_df(candles, "SBERP.csv")
+
+if __name__ == "__main__":
+    main()
