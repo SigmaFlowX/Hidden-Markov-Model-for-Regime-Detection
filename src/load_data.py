@@ -64,11 +64,12 @@ def save_candles_df(df, file_name):
 def main():
     start_date = datetime(2025, 12, 1)
     end_date = datetime(2025, 12, 31)
-    candles = get_moex_candles("IMOEX", start_date, end_date, interval=10, market="index")
+    ticker = "IMOEX"
+    candles = get_moex_candles(ticker, start_date, end_date, interval=10, market="index")
 
-    #save_candles_df(candles, "IMOEX2.csv")
+    save_candles_df(candles, f"{ticker}.csv")
 
-    #candles = pd.read_csv(os.path.join(DATA_DIR, "IMOEX2.csv"))
+    candles = pd.read_csv(os.path.join(DATA_DIR, f"{ticker}.csv"))
     candles['end'] = pd.to_datetime(candles['end'])
     candles.set_index('end', inplace=True)
     candles = candles.resample('1h').agg({
