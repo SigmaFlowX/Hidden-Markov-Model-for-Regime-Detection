@@ -17,6 +17,19 @@ def add_volatility(df, windows):
 
     return df
 
+def add_volume_features(df, spike_windows, volatility_windows):
+    for w in spike_windows:
+        df[f'volume_spike_{w}'] = df['volume'] / df['volume'].rolling(w).mean()
+
+    log_vol = np.log(df['volume']).diff()
+    df['log_volume'] = np.log(df['volume'])
+
+    for w in volatility_windows:
+        df[f'volume_volatility_{w}'] = log_vol.rolling(w).std()
+
+    return df
+
+
 def main():
     pass
 
