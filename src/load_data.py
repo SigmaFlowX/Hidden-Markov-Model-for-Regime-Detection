@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
-def get_moex_candles(symbol, start_date, end_date, interval=10, market="shares"):
+def get_moex_candles(symbol, start_date, end_date, rest_time, interval=10, market="shares"):
     url = f"https://iss.moex.com/iss/engines/stock/markets/{market}/boards/TQBR/securities/{symbol}/candles.json"
     cur_date = start_date
 
@@ -47,6 +47,7 @@ def get_moex_candles(symbol, start_date, end_date, interval=10, market="shares")
 
         cur_date = cur_date + timedelta(days=delta)
         print(cur_date)
+        time.sleep(rest_time)
 
     duplicates_count = df.duplicated(subset=["begin"]).sum()
     df.drop_duplicates(subset=["begin"], inplace=True)
