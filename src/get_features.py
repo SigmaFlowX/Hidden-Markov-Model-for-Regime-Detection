@@ -31,7 +31,12 @@ def add_volume_features(df, spike_windows, volatility_windows):
 
 
 def main():
-    pass
+    data = pd.read_csv(os.path.join(DATA_DIR, "IMOEX.csv"))
+
+    data = add_log_returns(data, [10, 20, 30])
+    data = add_volatility(data, [10, 20, 30])
+
+    print(data.dropna().head())
 
 if __name__ == "__main__":
     main()
