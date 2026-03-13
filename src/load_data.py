@@ -21,7 +21,6 @@ def get_moex_candles(symbol, start_date, end_date, rest_time, interval=10, marke
     session = requests.Session()
 
     while cur_date < end_date:
-        os.system("cls")
         params = {
             "from": cur_date,
             "till": cur_date + timedelta(days=delta),
