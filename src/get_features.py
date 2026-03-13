@@ -4,11 +4,12 @@ import numpy as np
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
-def compute_log_returns(df):
-    returns = df['close'] / df['close'].shift(1).dropna()
-    log_returns = np.log(returns)
+def add_log_returns(df, horizons):
+    for n in horizons:
+        df[f'log_returns_{n}'] = np.log(df['close'] / df['close'].shift(n))
+    return df
 
-    return log_returns
+
 
 def main():
     pass
