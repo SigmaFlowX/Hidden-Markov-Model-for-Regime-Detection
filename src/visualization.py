@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_price_with_regimes(prices, dates, regimes):
-    colors = ['red', 'green', 'grey', 'black']
+    colors = ['green', 'red', 'grey', 'black']
 
-    position = 0
+    start = 0
     for i in range(1, len(regimes)):
-        if regimes[i]!= regimes[i-1]:
-            plt.plot(dates[position:i], prices[position:i], color=colors[regimes[i-1] % len(colors)])
-        position = i
+        if regimes[i] != regimes[i-1]:
+            plt.plot(dates[start:i], prices[start:i], color=colors[regimes[i-1]])
+            start = i
 
-    plt.plot(dates[position:], prices[position:], color=colors[regimes[-1] % len(colors)])
+    plt.plot(dates[start:], prices[start:], color=colors[regimes[-1]])
