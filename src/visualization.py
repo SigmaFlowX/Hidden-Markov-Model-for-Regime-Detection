@@ -6,6 +6,7 @@ def plot_price_with_regimes(prices, dates, regimes):
     plt.figure(figsize=(8, 4))
     plt.grid()
     plt.tight_layout()
+    plt.title("IMOEX over time with predicted regimes")
 
     start = 0
     for i in range(1, len(regimes)):
