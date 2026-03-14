@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_price_with_regimes(prices, dates, regimes):
-    colors = ['green', 'red', 'grey', 'black']
+    colors = ['green', 'red', 'gray', 'black']
     plt.figure(figsize=(8, 4))
     plt.grid()
     plt.tight_layout()
