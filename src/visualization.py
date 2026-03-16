@@ -37,3 +37,6 @@ def plot_price_with_regimes(prices, dates, regimes):
             start = i-1
 
     plt.plot(dates[start:], prices[start:], color=colors[regimes[-1]])
+
+    plt.legend()
+    plt.show()
