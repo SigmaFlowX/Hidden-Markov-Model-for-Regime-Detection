@@ -33,10 +33,8 @@ def plot_price_with_regimes(prices, dates, regimes):
     start = 0
     for i in range(1, len(regimes)):
         if regimes[i] != regimes[i-1]:
-            plt.plot(dates[start:i], prices[start:i], color=colors[regimes[i-1]], label=regimes[i-1])
+            plt.plot(dates[start:i], prices[start:i], color=colors[regimes[i-1]])
             start = i-1
 
     plt.plot(dates[start:], prices[start:], color=colors[regimes[-1]])
-
-    plt.legend()
     plt.show()
