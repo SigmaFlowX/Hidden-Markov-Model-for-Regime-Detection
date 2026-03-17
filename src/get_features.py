@@ -29,6 +29,12 @@ def add_volume_features(df, spike_windows, volatility_windows):
 
     return df
 
+def add_drawdown_features(df, windows):
+    for window in windows:
+        rolling_max = df['close'].rolling(window=window, min_periods=1).max()
+        drawdown = df['close'] / rolling_max - 1.0
+        df[f'drawndown_{window}'] = drawdown
+    return df
 
 def main():
     data = pd.read_csv(os.path.join(DATA_DIR, "IMOEX.csv"))
