@@ -5,6 +5,7 @@ Currently all the main work is in [notebook](notebooks/hmm_regime_detection.ipyn
 2) hmm learn library
 3) Sklearn library for PCA and features scaling
 4) Matpotlib and Seaborn for visualizations
+5) Requests for MOEX API
 
 ## What has been done as of today 
 1) Historical IMOEX index candles obtained from MOEX API.
