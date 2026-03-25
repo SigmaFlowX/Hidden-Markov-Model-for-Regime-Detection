@@ -1,10 +1,10 @@
 Currently all the main work is in [notebook](notebooks/hmm_regime_detection.ipynb).
 
 ## Tools used:
-1) pandas, numpy
+1) Pandas, Numpy
 2) hmm learn library
-3) sklearn library for PCA and features scaling
-4) Matpotlib and seaborn for visualizations
+3) Sklearn library for PCA and features scaling
+4) Matpotlib and Seaborn for visualizations
 
 ## What has been done as of today 
 1) Historical IMOEX index candles obtained from MOEX API.
