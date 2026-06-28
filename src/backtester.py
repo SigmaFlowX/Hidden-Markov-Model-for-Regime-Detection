@@ -27,6 +27,11 @@ def backtest(df, z_entry, z_exit, z_window):
 
     df['position'] = positions
 
+    df['returns'] = df['close'].pct_change()
+    df['strategy_returns'] = df['position'].shift(1) * df['returns']
+    df['equity'] = (1 + df['strategy_returns']).cumprod()
+
+
     print(df.head())
 
 def main():
