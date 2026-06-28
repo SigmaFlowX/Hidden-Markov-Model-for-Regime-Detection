@@ -4,12 +4,11 @@ import numpy as np
 
 def backtest(df, z_entry, z_exit, z_window):
     mean = df['close'].rolling(window=z_window).mean()
-    std = df['close'].rolling(window=z_window).mean()
+    std = df['close'].rolling(window=z_window).std()
 
     df['z_score'] = (df['close'] - mean)/std
     df.dropna(inplace=True)
 
-    print(df.head())
 
 def main():
     df = pd.read_csv("../data/SBER.csv")
