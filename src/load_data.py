@@ -22,8 +22,14 @@ def get_candles(symbol, start_date, end_date, interval=10, engine="stock", marke
             "interval": interval,
         }
 
-        response = session.get(url, params=params, timeout=30)
-        data = response.json()
+        while True:
+            try:
+                response = session.get(url, params=params, timeout=30)
+                data = response.json()
+                break
+            except Exception as e:
+                print(e)
+                time.sleep(30)
 
         candles = data.get("candles", {})
         rows = candles.get("data", [])
@@ -53,7 +59,7 @@ def save_candles_df(df, file_name):
     df.to_csv(path, index=False)
 
 def main():
-    start_date = datetime(2020, 6, 20)
+    start_date = datetime(2000, 1, 1)
     end_date = datetime(2026, 6, 27)
     ticker = "SBER"
 
