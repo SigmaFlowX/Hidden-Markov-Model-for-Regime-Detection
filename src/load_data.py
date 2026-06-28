@@ -8,53 +8,43 @@ from matplotlib import pyplot as plt
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
-def get_moex_candles(symbol, start_date, end_date, rest_time, interval=10, market="shares"):
-    url = f"https://iss.moex.com/iss/engines/stock/markets/{market}/boards/TQBR/securities/{symbol}/candles.json"
-    cur_date = start_date
-
-    if interval == 10:
-        delta = 3
-    else:
-        delta = 0.5
-    df = pd.DataFrame()
+def get_candles(symbol, start_date, end_date, interval=10, engine="stock", market="shares", board="TQBR", show=False):
+    url = f"https://iss.moex.com/iss/engines/{engine}/markets/{market}/boards/{board}/securities/{symbol}/candles.json"
 
     session = requests.Session()
-
-    while cur_date < end_date:
+    all_dfs = []
+    start = 0
+    while True:
         params = {
-            "from": cur_date,
-            "till": cur_date + timedelta(days=delta),
-            "interval": interval
+            "start": start,
+            "from": start_date,
+            "till": end_date,
+            "interval": interval,
         }
-        while True:
-            try:
-                response = session.get(url, params=params)
-                if response.status_code != 200:
-                    print(f"Invalid response {response}")
-                    time.sleep(5)
-                    continue
-                break
-            except Exception as e:
-                print(f"Exception: {e}")
-                time.sleep(5)
 
+        response = session.get(url, params=params, timeout=30)
         data = response.json()
 
-        temp_df = pd.DataFrame(data["candles"]["data"], columns=data["candles"]["columns"])
-        df = pd.concat([df, temp_df], ignore_index=True)
+        candles = data.get("candles", {})
+        rows = candles.get("data", [])
+        cols = candles.get("columns", [])
 
+        all_dfs.append(pd.DataFrame(rows, columns=cols))
 
-        cur_date = cur_date + timedelta(days=delta)
-        print(cur_date)
-        time.sleep(rest_time)
+        if show:
+            print(all_dfs[-1]['begin'].iloc[-1])
 
-    duplicates_count = df.duplicated(subset=["begin"]).sum()
-    df.drop_duplicates(subset=["begin"], inplace=True)
-    print("Number of deleted duplicates:", duplicates_count)
+        if len(rows) < 500:
+            break
+        start += 500
 
-    df['timestamp'] = pd.to_datetime(df['begin'])
-    df.set_index('timestamp', inplace=True)
-    df.drop(columns=['begin'], inplace=True)
+    if not all_dfs:
+        return pd.DataFrame()
+
+    df = pd.concat(all_dfs, ignore_index=True)
+    df["timestamp"] = pd.to_datetime(df["begin"])
+    df.set_index("timestamp", inplace=True)
+    df.drop(columns=["begin"], inplace=True)
 
     return df
 
@@ -63,11 +53,11 @@ def save_candles_df(df, file_name):
     df.to_csv(path, index=False)
 
 def main():
-    start_date = datetime(2000, 12, 1)
-    end_date = datetime(2026, 3, 11)
-    ticker = "IMOEX"
+    start_date = datetime(2020, 6, 20)
+    end_date = datetime(2026, 6, 27)
+    ticker = "SBER"
 
-    candles = get_moex_candles(ticker, start_date, end_date, interval=10, market="index")
+    candles = get_candles(ticker, start_date, end_date, interval=10, market="shares")
     save_candles_df(candles, f"{ticker}.csv")
 
     candles = pd.read_csv(os.path.join(DATA_DIR, f"{ticker}.csv"))
