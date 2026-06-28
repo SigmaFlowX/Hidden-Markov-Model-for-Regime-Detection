@@ -48,15 +48,12 @@ def get_candles(symbol, start_date, end_date, interval=10, engine="stock", marke
         return pd.DataFrame()
 
     df = pd.concat(all_dfs, ignore_index=True)
-    df["timestamp"] = pd.to_datetime(df["begin"])
-    df.set_index("timestamp", inplace=True)
-    df.drop(columns=["begin"], inplace=True)
 
     return df
 
 def save_candles_df(df, file_name):
     path = os.path.join(DATA_DIR, file_name)
-    df.to_csv(path, index=False)
+    df.to_csv(path)
 
 def main():
     start_date = datetime(2000, 1, 1)
