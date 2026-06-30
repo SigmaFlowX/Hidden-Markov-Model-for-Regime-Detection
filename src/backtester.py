@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from dateutil.relativedelta import relativedelta
+import optuna
 
 def generate_walk_forward_windows(df, train_months=6, test_months=3):
     windows = []
@@ -59,6 +60,15 @@ def backtest(df, z_entry, z_exit, z_window):
     sharpe = daily_returns.mean()/daily_returns.std() * np.sqrt(252)
 
     return sharpe
+
+def objective(trial, df):
+    df = df.copy()
+
+    z_entry = trial.suggest_float('z_entry', 0.0, 5)
+    z_exit = trial.suggest_float('z_exit', 0.0, z_entry)
+    z_window = trial.suggest_int('z_window', 0, 100)
+
+    return backtest(df, z_entry, z_exit, z_window)
 
 def main():
     df = pd.read_csv("../data/SBER.csv")
