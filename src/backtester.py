@@ -1,6 +1,27 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+from dateutil.relativedelta import relativedelta
+
+def generate_walk_forward_windows(df, train_months=6, test_months=3):
+    windows = []
+    start_date = df['timestamp'].min()
+    end_date = df['timestamp'].max()
+
+    current_start = start_date
+
+    while True:
+        train_start = current_start
+        train_end = train_start + relativedelta(months=train_months)
+        test_start = train_end
+        test_end = test_start + relativedelta(months=test_months)
+
+        if test_end > end_date:
+            break
+
+        windows.append((train_start, train_end, test_start, test_end))
+        current_start = train_start + relativedelta(months=test_months)
+
+    return windows
 
 def backtest(df, z_entry, z_exit, z_window):
     df = df.copy()
