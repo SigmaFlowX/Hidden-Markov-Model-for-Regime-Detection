@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def backtest(df, z_entry, z_exit, z_window):
+    df = df.copy()
+
     mean = df['close'].rolling(window=z_window).mean()
     std = df['close'].rolling(window=z_window).std()
 
@@ -31,8 +33,11 @@ def backtest(df, z_entry, z_exit, z_window):
     df['strategy_returns'] = df['position'].shift(1) * df['returns']
     df['equity'] = (1 + df['strategy_returns']).cumprod()
 
+    daily_returns = (1 + df['strategy_returns']).resample('1D').prod() - 1
 
-    print(df.head())
+    sharpe = daily_returns.mean()/daily_returns.std() * np.sqrt(252)
+
+    return sharpe
 
 def main():
     df = pd.read_csv("../data/SBER.csv")
@@ -40,7 +45,7 @@ def main():
     df.set_index('timestamp', inplace=True)
     df = df[['close']]
 
-    backtest(df, 1, 0.5, 20)
+    backtest(df, 0.9, 0.0, 20)
 
 if __name__ == "__main__":
     main()
