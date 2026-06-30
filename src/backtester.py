@@ -70,6 +70,12 @@ def objective(trial, df):
 
     return backtest(df, z_entry, z_exit, z_window)
 
+def optimize(df, trials=200):
+    study = optuna.create_study(direction="maximize")
+    study.optimize(lambda trial: objective(trial, df), n_trials=trials, n_jobs=-1)
+
+    return study.best_params
+
 def main():
     df = pd.read_csv("../data/SBER.csv")
     df['timestamp'] = pd.to_datetime(df['begin'])
