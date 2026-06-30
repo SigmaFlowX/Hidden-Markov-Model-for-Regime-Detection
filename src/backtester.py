@@ -55,11 +55,7 @@ def backtest(df, z_entry, z_exit, z_window):
     df['strategy_returns'] = df['position'].shift(1) * df['returns']
     df['equity'] = (1 + df['strategy_returns']).cumprod()
 
-    daily_returns = (1 + df['strategy_returns']).resample('1D').prod() - 1
-
-    sharpe = daily_returns.mean()/daily_returns.std() * np.sqrt(252)
-
-    return sharpe
+    return df
 
 def objective(trial, df):
     df = df.copy()
@@ -68,7 +64,12 @@ def objective(trial, df):
     z_exit = trial.suggest_float('z_exit', 0.0, z_entry)
     z_window = trial.suggest_int('z_window', 0, 100)
 
-    return backtest(df, z_entry, z_exit, z_window)
+    df = backtest(df, z_entry, z_exit, z_window)
+
+    daily_returns = (1 + df['strategy_returns']).resample('1D').prod() - 1
+    sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
+
+    return sharpe
 
 def optimize(df, trials=200):
     study = optuna.create_study(direction="maximize")
