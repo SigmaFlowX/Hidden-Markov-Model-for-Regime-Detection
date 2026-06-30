@@ -76,6 +76,33 @@ def optimize(df, trials=200):
 
     return study.best_params
 
+def walk_forward_optimization(df, train_month, test_month, trials=200):
+    df = df.copy()
+
+    windows = generate_walk_forward_windows(df, train_month, test_month)
+
+    results = []
+    equity_point = 1.0
+    for train_start, train_end, test_start, test_end in windows:
+        train_df = df.loc[(df['timestamp'] > train_start) & (df['timestamp'] < train_end )].copy()
+        test_df = df.loc[(df['timestamp'] > test_start) & (df['timestamp'] < test_end)].copy()
+
+        params = optimize(train_df, trials)
+
+        test_res = backtest(test_df, **params)
+
+        test_res = test_res.copy()
+        test_res['equity'] = test_res['equity'] * equity_point
+
+        equity_point= test_res['equity'].iloc[-1]
+        results.append(test_res)
+
+    if not results:
+        return None
+    final_df = pd.concat(results, ignore_index=False)
+
+    return final_df
+
 def main():
     df = pd.read_csv("../data/SBER.csv")
     df['timestamp'] = pd.to_datetime(df['begin'])
