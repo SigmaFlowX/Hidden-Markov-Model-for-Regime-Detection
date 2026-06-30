@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from dateutil.relativedelta import relativedelta
 import optuna
+import matplotlib.pyplot as plt
 
 def generate_walk_forward_windows(df, train_months=6, test_months=3):
     windows = []
@@ -110,7 +111,14 @@ def main():
     df.set_index('timestamp', inplace=True)
     df = df[['close']]
 
-    walk_forward_optimization(df, train_month=6, test_month=3)
+    result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=100)
+    result_df['equity'].plot()
+    plt.show()
+
+    daily_returns = (1 + result_df['strategy_returns']).resample('1D').prod() - 1
+    sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
+
+    print(sharpe)
 
 if __name__ == "__main__":
     main()
