@@ -5,8 +5,8 @@ import optuna
 
 def generate_walk_forward_windows(df, train_months=6, test_months=3):
     windows = []
-    start_date = df['timestamp'].min()
-    end_date = df['timestamp'].max()
+    start_date = df.index.min()
+    end_date = df.index.max()
 
     current_start = start_date
 
@@ -84,8 +84,8 @@ def walk_forward_optimization(df, train_month, test_month, trials=200):
     results = []
     equity_point = 1.0
     for train_start, train_end, test_start, test_end in windows:
-        train_df = df.loc[(df['timestamp'] > train_start) & (df['timestamp'] < train_end )].copy()
-        test_df = df.loc[(df['timestamp'] > test_start) & (df['timestamp'] < test_end)].copy()
+        train_df = df.loc[train_start:train_end].copy()
+        test_df = df.loc[test_start:test_end].copy()
 
         params = optimize(train_df, trials)
 
@@ -109,7 +109,7 @@ def main():
     df.set_index('timestamp', inplace=True)
     df = df[['close']]
 
-    backtest(df, 0.9, 0.0, 20)
+    walk_forward_optimization(df, train_month=6, test_month=3)
 
 if __name__ == "__main__":
     main()
