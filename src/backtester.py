@@ -3,6 +3,44 @@ import numpy as np
 from dateutil.relativedelta import relativedelta
 import optuna
 import matplotlib.pyplot as plt
+from src.get_features import add_log_returns, add_volatility, add_drawdown_features
+from src.train_hmm import train_hmm
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+def hmm(train_df):
+    candles = train_df.resample("D").agg({
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'volume': 'sum'
+    }).dropna()
+
+    candles = add_log_returns(candles, [1, 7, 14, 30, 90])
+    candles = add_volatility(candles, [7, 14, 30, 90])
+    candles = add_drawdown_features(candles, [7, 14, 30, 90, 180])
+
+    features = [
+        "log_returns_7", "log_returns_14", "log_returns_30", "log_returns_90",
+        "volatility_7", "volatility_14", "volatility_30", "volatility_90",
+        "drawndown_7", "drawndown_14", "drawndown_30", "drawndown_90", "drawndown_180"
+    ]
+
+    candles = candles.dropna()
+    X = candles[features].values
+
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+
+    pca = PCA()
+    X_pca = pca.fit_transform(X)
+    evr = pca.explained_variance_ratio_
+    n_components = np.argmax(np.cumsum(evr) >= 0.95) + 1
+    X = X_pca[:, :n_components]
+
+    model = train_hmm(X, n_states=3, n_iter=100)
+
 
 def generate_walk_forward_windows(df, train_months=6, test_months=3):
     windows = []
@@ -109,16 +147,17 @@ def main():
     df = pd.read_csv("../data/SBER.csv")
     df['timestamp'] = pd.to_datetime(df['begin'])
     df.set_index('timestamp', inplace=True)
-    df = df[['close']]
 
-    result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=100)
-    result_df['equity'].plot()
-    plt.show()
+    hmm(df)
 
-    daily_returns = (1 + result_df['strategy_returns']).resample('1D').prod() - 1
-    sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
-
-    print(sharpe)
+    # result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=200)
+    # result_df['equity'].plot()
+    # plt.show()
+    #
+    # daily_returns = (1 + result_df['strategy_returns']).resample('1D').prod() - 1
+    # sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
+    #
+    # print(sharpe)
 
 if __name__ == "__main__":
     main()
