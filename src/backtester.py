@@ -64,7 +64,7 @@ def generate_walk_forward_windows(df, train_months=6, test_months=3):
 
     return windows
 
-def backtest(df, z_entry, z_exit, z_window, model=None):
+def backtest(df, model, z_entry, z_exit, z_window):
     df = df.copy()
 
     mean = df['close'].rolling(window=z_window).mean()
@@ -97,23 +97,23 @@ def backtest(df, z_entry, z_exit, z_window, model=None):
 
     return df
 
-def objective(trial, df):
+def objective(trial, df, model):
     df = df.copy()
 
     z_entry = trial.suggest_float('z_entry', 0.0, 5)
     z_exit = trial.suggest_float('z_exit', 0.0, z_entry)
     z_window = trial.suggest_int('z_window', 0, 100)
 
-    df = backtest(df, z_entry, z_exit, z_window)
+    df = backtest(df, model, z_entry, z_exit, z_window)
 
     daily_returns = (1 + df['strategy_returns']).resample('1D').prod() - 1
     sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
 
     return sharpe
 
-def optimize(df, trials=200):
+def optimize(df, model, trials=200):
     study = optuna.create_study(direction="maximize")
-    study.optimize(lambda trial: objective(trial, df), n_trials=trials, n_jobs=-1)
+    study.optimize(lambda trial: objective(trial, df, model), n_trials=trials, n_jobs=-1)
 
     return study.best_params
 
@@ -128,12 +128,15 @@ def walk_forward_optimization(df, train_month, test_month, trials=200, hmm_use=F
         train_df = df.loc[train_start:train_end].copy()
         test_df = df.loc[test_start:test_end].copy()
 
-        hmm_df = df.loc[df.index[0]:train_end].copy()
-        model = hmm(hmm_df)
+        if hmm_use:
+            hmm_df = df.loc[df.index[0]:train_end].copy()
+            model = hmm(hmm_df)
+        else:
+            model = None
 
-        params = optimize(train_df, trials)
+        params = optimize(train_df, model, trials)
 
-        test_res = backtest(test_df, **params)
+        test_res = backtest(test_df, model, **params)
 
         test_res = test_res.copy()
         test_res['equity'] = test_res['equity'] * equity_point
@@ -152,7 +155,7 @@ def main():
     df['timestamp'] = pd.to_datetime(df['begin'])
     df.set_index('timestamp', inplace=True)
 
-    result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=10)
+    result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=10, hmm_use=True)
     result_df['equity'].plot()
     plt.show()
 
