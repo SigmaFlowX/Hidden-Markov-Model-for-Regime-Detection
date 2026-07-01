@@ -41,6 +41,7 @@ def hmm(train_df):
 
     model = train_hmm(X, n_states=3, n_iter=100)
 
+    return model
 
 def generate_walk_forward_windows(df, train_months=6, test_months=3):
     windows = []
@@ -63,7 +64,7 @@ def generate_walk_forward_windows(df, train_months=6, test_months=3):
 
     return windows
 
-def backtest(df, z_entry, z_exit, z_window):
+def backtest(df, z_entry, z_exit, z_window, model=None):
     df = df.copy()
 
     mean = df['close'].rolling(window=z_window).mean()
@@ -116,7 +117,7 @@ def optimize(df, trials=200):
 
     return study.best_params
 
-def walk_forward_optimization(df, train_month, test_month, trials=200):
+def walk_forward_optimization(df, train_month, test_month, trials=200, hmm_use=False):
     df = df.copy()
 
     windows = generate_walk_forward_windows(df, train_month, test_month)
@@ -126,6 +127,9 @@ def walk_forward_optimization(df, train_month, test_month, trials=200):
     for train_start, train_end, test_start, test_end in windows:
         train_df = df.loc[train_start:train_end].copy()
         test_df = df.loc[test_start:test_end].copy()
+
+        hmm_df = df.loc[df.index[0]:train_end].copy()
+        model = hmm(hmm_df)
 
         params = optimize(train_df, trials)
 
@@ -148,16 +152,14 @@ def main():
     df['timestamp'] = pd.to_datetime(df['begin'])
     df.set_index('timestamp', inplace=True)
 
-    hmm(df)
+    result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=10)
+    result_df['equity'].plot()
+    plt.show()
 
-    # result_df = walk_forward_optimization(df, train_month=6, test_month=3, trials=200)
-    # result_df['equity'].plot()
-    # plt.show()
-    #
-    # daily_returns = (1 + result_df['strategy_returns']).resample('1D').prod() - 1
-    # sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
-    #
-    # print(sharpe)
+    daily_returns = (1 + result_df['strategy_returns']).resample('1D').prod() - 1
+    sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
+
+    print(sharpe)
 
 if __name__ == "__main__":
     main()
