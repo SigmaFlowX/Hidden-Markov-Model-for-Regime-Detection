@@ -8,14 +8,14 @@ from src.train_hmm import train_hmm
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
-def hmm(train_df):
-    candles = train_df.resample("D").agg({
-        'open': 'first',
-        'high': 'max',
-        'low': 'min',
-        'close': 'last',
-        'volume': 'sum'
-    }).dropna()
+def hmm(candles):
+    # candles = train_df.resample("D").agg({
+    #     'open': 'first',
+    #     'high': 'max',
+    #     'low': 'min',
+    #     'close': 'last',
+    #     'volume': 'sum'
+    # }).dropna()
 
     candles = add_log_returns(candles, [1, 7, 14, 30, 90])
     candles = add_volatility(candles, [7, 14, 30, 90])
