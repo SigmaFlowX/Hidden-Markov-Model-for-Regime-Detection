@@ -33,7 +33,7 @@ def add_drawdown_features(df, windows):
     for window in windows:
         rolling_max = df['close'].rolling(window=window, min_periods=1).max()
         drawdown = df['close'] / rolling_max - 1.0
-        df[f'drawndown_{window}'] = drawdown
+        df[f'drawdown_{window}'] = drawdown
     return df
 
 def main():

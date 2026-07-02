@@ -16,7 +16,7 @@ def prepare_x(candles):
     features = [
         "log_returns_7", "log_returns_14", "log_returns_30", "log_returns_90",
         "volatility_7", "volatility_14", "volatility_30", "volatility_90",
-        "drawndown_7", "drawndown_14", "drawndown_30", "drawndown_90", "drawndown_180"
+        "drawdown_7", "drawdown_14", "drawdown_30", "drawdown_90", "drawdown_180"
     ]
 
     candles = candles.dropna()
