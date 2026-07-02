@@ -110,24 +110,24 @@ def backtest(df, model, scaler, pca, n_components, z_entry, z_exit, z_window):
 
     return df
 
-def objective(trial, df, model):
+def objective(trial, df, model, scaler, pca, n_components):
     df = df.copy()
 
     z_entry = trial.suggest_float('z_entry', 0.0, 5)
     z_exit = trial.suggest_float('z_exit', 0.0, z_entry)
     z_window = trial.suggest_int('z_window', 0, 100)
 
-    df = backtest(df, model, z_entry, z_exit, z_window)
+    df = backtest(df, model, scaler, pca, n_components, z_entry, z_exit, z_window)
 
     daily_returns = (1 + df['strategy_returns']).resample('1D').prod() - 1
     sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
-
     return sharpe
 
-def optimize(df, model, trials=200):
+def optimize(df, model, scaler, pca, n_components, trials=200):
     study = optuna.create_study(direction="maximize")
-    study.optimize(lambda trial: objective(trial, df, model), n_trials=trials, n_jobs=-1)
-
+    study.optimize(lambda trial: objective(trial, df, model, scaler, pca, n_components),
+                   n_trials=trials, n_jobs=-1
+    )
     return study.best_params
 
 def walk_forward_optimization(df, train_month, test_month, trials=200, hmm_use=False):
@@ -147,9 +147,9 @@ def walk_forward_optimization(df, train_month, test_month, trials=200, hmm_use=F
         else:
             model = scaler = pca = n_components = None
 
-        params = optimize(train_df, model, trials)
+        params = optimize(train_df, model, scaler, pca, n_components, trials)
 
-        test_res = backtest(test_df, model, **params)
+        test_res = backtest(test_df, model, scaler, pca, n_components, **params)
 
         test_res = test_res.copy()
         test_res['equity'] = test_res['equity'] * equity_point
