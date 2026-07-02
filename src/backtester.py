@@ -84,7 +84,6 @@ def backtest(df, model, scaler, pca, n_components, z_entry, z_exit, z_window):
 
     x = prepare_x(df, scaler, pca, n_components)
     regimes = model.predict(x)
-    print(regimes)
 
     position = 0
     positions = []
@@ -120,7 +119,13 @@ def objective(trial, df, model, scaler, pca, n_components):
     df = backtest(df, model, scaler, pca, n_components, z_entry, z_exit, z_window)
 
     daily_returns = (1 + df['strategy_returns']).resample('1D').prod() - 1
-    sharpe = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
+    std = daily_returns.std()
+
+    if std != 0:
+        sharpe = daily_returns.mean() / std * np.sqrt(252)
+    else:
+        sharpe = -99999
+
     return sharpe
 
 def optimize(df, model, scaler, pca, n_components, trials=200):
