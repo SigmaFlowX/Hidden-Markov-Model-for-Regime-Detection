@@ -38,6 +38,7 @@ def prepare_x(candles, scaler=None, pca=None, n_components=None):
         return x
 
 def hmm(candles):
+
     # candles = train_df.resample("D").agg({
     #     'open': 'first',
     #     'high': 'max',
@@ -46,11 +47,10 @@ def hmm(candles):
     #     'volume': 'sum'
     # }).dropna()
 
-
-    x = prepare_x(candles)
+    x, scaler, pca, n_components = prepare_x(candles)
     model = train_hmm(x, n_states=3, n_iter=100)
+    return model, scaler, pca, n_components
 
-    return model
 
 def generate_walk_forward_windows(df, train_months=6, test_months=3):
     windows = []
@@ -73,7 +73,7 @@ def generate_walk_forward_windows(df, train_months=6, test_months=3):
 
     return windows
 
-def backtest(df, model, z_entry, z_exit, z_window):
+def backtest(df, model, scaler, pca, n_components, z_entry, z_exit, z_window):
     df = df.copy()
 
     mean = df['close'].rolling(window=z_window).mean()
@@ -82,7 +82,7 @@ def backtest(df, model, z_entry, z_exit, z_window):
     df['z_score'] = (df['close'] - mean)/std
     df.dropna(inplace=True)
 
-    x = prepare_x(df)
+    x = prepare_x(df, scaler, pca, n_components)
     regimes = model.predict(x)
     print(regimes)
 
@@ -143,9 +143,9 @@ def walk_forward_optimization(df, train_month, test_month, trials=200, hmm_use=F
 
         if hmm_use:
             hmm_df = df.loc[df.index[0]:train_end].copy()
-            model = hmm(hmm_df)
+            model, scaler, pca, n_components = hmm(hmm_df)
         else:
-            model = None
+            model = scaler = pca = n_components = None
 
         params = optimize(train_df, model, trials)
 
