@@ -8,15 +8,7 @@ from src.train_hmm import train_hmm
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
-def hmm(candles):
-    # candles = train_df.resample("D").agg({
-    #     'open': 'first',
-    #     'high': 'max',
-    #     'low': 'min',
-    #     'close': 'last',
-    #     'volume': 'sum'
-    # }).dropna()
-
+def prepare_x(candles):
     candles = add_log_returns(candles, [1, 7, 14, 30, 90])
     candles = add_volatility(candles, [7, 14, 30, 90])
     candles = add_drawdown_features(candles, [7, 14, 30, 90, 180])
@@ -28,18 +20,31 @@ def hmm(candles):
     ]
 
     candles = candles.dropna()
-    X = candles[features].values
+    x = candles[features].values
 
     scaler = StandardScaler()
-    X = scaler.fit_transform(X)
+    x = scaler.fit_transform(x)
 
     pca = PCA()
-    X_pca = pca.fit_transform(X)
+    x_pca = pca.fit_transform(x)
     evr = pca.explained_variance_ratio_
     n_components = np.argmax(np.cumsum(evr) >= 0.95) + 1
-    X = X_pca[:, :n_components]
+    x = x_pca[:, :n_components]
 
-    model = train_hmm(X, n_states=3, n_iter=100)
+    return x
+
+def hmm(candles):
+    # candles = train_df.resample("D").agg({
+    #     'open': 'first',
+    #     'high': 'max',
+    #     'low': 'min',
+    #     'close': 'last',
+    #     'volume': 'sum'
+    # }).dropna()
+
+
+    x = prepare_x(candles)
+    model = train_hmm(x, n_states=3, n_iter=100)
 
     return model
 
