@@ -8,7 +8,7 @@ from src.train_hmm import train_hmm
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
-def prepare_x(candles):
+def prepare_x(candles, scaler=None, pca=None, n_components=None):
     candles = add_log_returns(candles, [1, 7, 14, 30, 90])
     candles = add_volatility(candles, [7, 14, 30, 90])
     candles = add_drawdown_features(candles, [7, 14, 30, 90, 180])
@@ -22,16 +22,20 @@ def prepare_x(candles):
     candles = candles.dropna()
     x = candles[features].values
 
-    scaler = StandardScaler()
-    x = scaler.fit_transform(x)
+    if scaler is None:
+        scaler = StandardScaler()
+        x = scaler.fit_transform(x)
 
-    pca = PCA()
-    x_pca = pca.fit_transform(x)
-    evr = pca.explained_variance_ratio_
-    n_components = np.argmax(np.cumsum(evr) >= 0.95) + 1
-    x = x_pca[:, :n_components]
-
-    return x
+        pca = PCA()
+        x_pca = pca.fit_transform(x)
+        evr = pca.explained_variance_ratio_
+        n_components = int(np.argmax(np.cumsum(evr) >= 0.95) + 1)
+        x = x_pca[:, :n_components]
+        return x, scaler, pca, n_components
+    else:
+        x = scaler.transform(x)
+        x = pca.transform(x)[:, :n_components]
+        return x
 
 def hmm(candles):
     # candles = train_df.resample("D").agg({
@@ -77,6 +81,10 @@ def backtest(df, model, z_entry, z_exit, z_window):
 
     df['z_score'] = (df['close'] - mean)/std
     df.dropna(inplace=True)
+
+    x = prepare_x(df)
+    regimes = model.predict(x)
+    print(regimes)
 
     position = 0
     positions = []
